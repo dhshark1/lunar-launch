@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class LaunchManager {
 
-    private static final int LAUNCH_DURATION_SECONDS = 300;  // 5 minutes
+    private static final int LAUNCH_DURATION_SECONDS = 300;
     private static final int MIN_TASK_INTERVAL_SECONDS = 15;
     private static final int MAX_TASK_INTERVAL_SECONDS = 45;
 
@@ -52,9 +52,6 @@ public class LaunchManager {
         scheduleNextMaintenanceTask();
     }
 
-    /**
-     * Helper to let the command (or others) check if a launch is active.
-     */
     public boolean isLaunching() {
         return isLaunching;
     }

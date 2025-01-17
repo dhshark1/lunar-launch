@@ -18,17 +18,14 @@ public class TaskListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        // Check if it’s a right-click on a button or lever
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null) {
             Block block = event.getClickedBlock();
             Material type = block.getType();
 
             if (type.toString().contains("BUTTON")) {
-                // Pressed a button
                 maintenanceManager.onPlayerAction(MaintenanceTask.TaskAction.PRESS_BUTTON);
             }
             else if (type == Material.LEVER) {
-                // Flicked a lever
                 maintenanceManager.onPlayerAction(MaintenanceTask.TaskAction.FLICK_LEVER);
             }
         }

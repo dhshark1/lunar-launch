@@ -16,7 +16,6 @@ public class LaunchCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        // Start the launch
         if (label.equalsIgnoreCase("launch")) {
             if (launchManager.isLaunching()) {
                 sender.sendMessage(ChatColor.RED + "Launch is already in progress!");

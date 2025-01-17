@@ -15,13 +15,12 @@ public class MaintenanceTask {
     private int currentStepIndex = 0;
     private boolean completed = false;
 
-    private final int timeToComplete;  // in seconds
+    private final int timeToComplete;
     private BukkitTask timeoutTask;
 
     private final MaintenanceManager maintenanceManager =
             LunarLaunch.getInstance().getMaintenanceManager();
 
-    // Actions that players can perform in this plugin
     public enum TaskAction {
         PRESS_BUTTON,
         FLICK_LEVER,
@@ -29,36 +28,23 @@ public class MaintenanceTask {
         PLACE_IRON_BLOCK
     }
 
-    /**
-     * Creates a new multi-step maintenance task with N random steps (2-4).
-     */
     public MaintenanceTask(int timeToComplete) {
         this.timeToComplete = timeToComplete;
         this.requiredSteps = generateRandomSteps();
         this.name = "Multi-step Task (" + requiredSteps.size() + " steps)";
     }
 
-    /**
-     * Start the task:
-     *  - Announce instructions
-     *  - Schedule a timeout
-     */
     public void start() {
         broadcast(ChatColor.RED + "MAINTENANCE REQUIRED: " + ChatColor.YELLOW + getInstructions());
         scheduleTimeout();
     }
 
-    /**
-     * Called by MaintenanceManager / TaskListener when a player performs an action.
-     */
     public void progressTask(TaskAction action) {
         if (completed) return;
 
-        // Check if the player performed the correct action for the current step
         TaskAction required = requiredSteps.get(currentStepIndex);
         if (action == required) {
             currentStepIndex++;
-            // If all steps are completed
             if (currentStepIndex >= requiredSteps.size()) {
                 complete();
             } else {
@@ -66,23 +52,16 @@ public class MaintenanceTask {
                         + ChatColor.YELLOW + formatStep(requiredSteps.get(currentStepIndex)));
             }
         } else {
-            // Wrong action -> reset the step progress
             broadcast(ChatColor.RED + "Incorrect action for this step! Progress reset to step 1.");
             currentStepIndex = 0;
         }
     }
 
-    /**
-     * Mark this task as completed
-     */
     private void complete() {
         completed = true;
-        cancelTimeout(); // no longer need the timeout
+        cancelTimeout();
     }
 
-    /**
-     * Returns true if the task is completed
-     */
     public boolean isCompleted() {
         return completed;
     }
@@ -91,18 +70,12 @@ public class MaintenanceTask {
         return name;
     }
 
-    /**
-     * Cancel the scheduled timeout (used on completion or when tasks are reset)
-     */
     public void cancelTimeout() {
         if (timeoutTask != null) {
             timeoutTask.cancel();
         }
     }
 
-    /**
-     * Generate the instructions for display: “Step 1: FLICK_LEVER, Step 2: PRESS_BUTTON...”
-     */
     private String getInstructions() {
         StringBuilder sb = new StringBuilder("Complete the following steps **in order**:\n");
         for (int i = 0; i < requiredSteps.size(); i++) {
@@ -116,9 +89,6 @@ public class MaintenanceTask {
         return sb.toString();
     }
 
-    /**
-     * Simple translator from TaskAction enum to a user-friendly string
-     */
     private String formatStep(TaskAction action) {
         switch (action) {
             case PRESS_BUTTON:
@@ -133,9 +103,6 @@ public class MaintenanceTask {
         return action.name();
     }
 
-    /**
-     * Randomly generate 2-4 steps
-     */
     private List<TaskAction> generateRandomSteps() {
         List<TaskAction> possibleActions = List.of(
                 TaskAction.PRESS_BUTTON,
@@ -145,7 +112,7 @@ public class MaintenanceTask {
         );
 
         Random rand = new Random();
-        int stepCount = rand.nextInt(3) + 2; // 2–4 steps
+        int stepCount = rand.nextInt(3) + 2;
         List<TaskAction> steps = new ArrayList<>();
         for (int i = 0; i < stepCount; i++) {
             steps.add(possibleActions.get(rand.nextInt(possibleActions.size())));
@@ -153,9 +120,6 @@ public class MaintenanceTask {
         return steps;
     }
 
-    /**
-     * Schedule a timeout that fails the entire launch if not completed in time
-     */
     private void scheduleTimeout() {
         timeoutTask = Bukkit.getScheduler().runTaskLater(
                 LunarLaunch.getInstance(),
@@ -164,12 +128,8 @@ public class MaintenanceTask {
         );
     }
 
-    /**
-     * Called if time runs out
-     */
     private void onTimeout() {
         if (!completed) {
-            // Fail the entire launch
             maintenanceManager.failTask(this);
         }
     }

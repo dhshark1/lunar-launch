@@ -1,4 +1,9 @@
-name: lunarLaunch
-version: '1.0-SNAPSHOT'
+name: LunarLaunch
 main: org.losttribe.lunarLaunch.LunarLaunch
-api-version: '1.21'
+version: 1.0
+api-version: "1.21"
+
+commands:
+  launch:
+    description: Start the rocket launch sequence
+    usage: /<command>

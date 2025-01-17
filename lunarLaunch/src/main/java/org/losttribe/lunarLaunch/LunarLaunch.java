@@ -18,21 +18,17 @@ public class LunarLaunch extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        // Initialize managers
         this.maintenanceManager = new MaintenanceManager();
         this.launchManager = new LaunchManager(maintenanceManager);
 
-        // Register our events
         Bukkit.getPluginManager().registerEvents(new TaskListener(maintenanceManager), this);
 
-        // Register /launch command
         getCommand("launch").setExecutor(new LaunchCommand(launchManager));
 
     }
 
     @Override
     public void onDisable() {
-        // Clean up any tasks
         launchManager.stopAllTasks();
         maintenanceManager.stopAllTasks();
     }
