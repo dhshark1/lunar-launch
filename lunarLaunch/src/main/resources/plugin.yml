@@ -2,8 +2,9 @@ name: LunarLaunch
 main: org.losttribe.lunarLaunch.LunarLaunch
 version: 1.0
 api-version: "1.21"
+description: Multi-stage rocket launch plugin with specific blocks only.
 
 commands:
   launch:
-    description: Start the rocket launch sequence
-    usage: /<command>
+    description: Main launch command (start or setup).
+    usage: /<command> <start|setup>
