@@ -1,6 +1,7 @@
 package org.losttribe.lunarLaunch;
 
 import org.losttribe.lunarLaunch.commands.LaunchCommand;
+import org.losttribe.lunarLaunch.listeners.LampBlockListener;
 import org.losttribe.lunarLaunch.listeners.SetupListener;
 import org.losttribe.lunarLaunch.managers.StageManager;
 import org.losttribe.lunarLaunch.managers.TaskManager;
@@ -53,6 +54,7 @@ public class LunarLaunch extends JavaPlugin {
 
         // 4) Register the setup listener
         getServer().getPluginManager().registerEvents(new SetupListener(this), this);
+        getServer().getPluginManager().registerEvents(new LampBlockListener(taskManager), this);
 
         getLogger().info("LunarLaunch plugin enabled. config.yml loaded!");
     }
