@@ -19,8 +19,8 @@ public class TaskManager implements Listener {
 
     private final LunarLaunch plugin;
 
-    private LocationData currentBlock;  // The block that must be interacted with
-    private Player assignedPlayer;      // The player chosen for this task
+    private LocationData currentBlock;
+    private Player assignedPlayer;
     private BukkitTask timeoutTask;
     private StageManager stageManagerRef;
 
@@ -29,9 +29,6 @@ public class TaskManager implements Listener {
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
-    /**
-     * 5-second countdown before launching the next task
-     */
     public void startPreTaskCountdown(int seconds, Runnable taskStarter) {
         new BukkitRunnable() {
             int countdown = seconds;
@@ -48,10 +45,6 @@ public class TaskManager implements Listener {
         }.runTaskTimer(plugin, 0L, 20L);
     }
 
-    /**
-     * Start a single random task: pick random block from config,
-     * pick random player, set a time limit, light the lamp
-     */
     public void startRandomTask(int timeLimit, StageManager stageManager) {
         this.stageManagerRef = stageManager; // Store reference
 
@@ -62,7 +55,6 @@ public class TaskManager implements Listener {
             return;
         }
 
-        // Pick random block
         String chosen = blocks.get(new Random().nextInt(blocks.size()));
         LocationData locData = stringToLocationData(chosen);
         if (locData == null) {
@@ -72,7 +64,6 @@ public class TaskManager implements Listener {
         }
         currentBlock = locData;
 
-        // Pick random player
         Player[] online = Bukkit.getOnlinePlayers().toArray(new Player[0]);
         if (online.length == 0) {
             Bukkit.broadcastMessage(ChatColor.RED + "No players online to do the task!");
@@ -81,14 +72,12 @@ public class TaskManager implements Listener {
         }
         assignedPlayer = online[new Random().nextInt(online.length)];
 
-        // Light the lamp beneath the chosen block
         setLampLit(true);
 
         Bukkit.broadcastMessage(ChatColor.GOLD + "[TASK] " + assignedPlayer.getName()
                 + ", interact with the block at " + currentBlock
                 + " within " + timeLimit + " seconds!");
 
-        // Timeout
         timeoutTask = Bukkit.getScheduler().runTaskLater(plugin, () -> {
             Bukkit.broadcastMessage(ChatColor.RED + "Task failed! Time ran out.");
             failTask();
@@ -99,7 +88,6 @@ public class TaskManager implements Listener {
     public boolean isActiveLamp(Block block) {
         if (currentBlock == null) return false;
 
-        // The lamp is presumably at y = currentBlock.y - 1, same x,z
         World w = Bukkit.getWorld(currentBlock.worldName);
         if (w == null) return false;
 
@@ -107,9 +95,6 @@ public class TaskManager implements Listener {
         return ourLamp.equals(block);
     }
 
-    /**
-     * Check the player's interaction
-     */
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (currentBlock == null || assignedPlayer == null) return;
@@ -118,13 +103,11 @@ public class TaskManager implements Listener {
         Block clicked = event.getClickedBlock();
         Action action = event.getAction();
 
-        // For a pressure plate => PHYSICAL
         if (action == Action.PHYSICAL) {
             if (!event.getPlayer().equals(assignedPlayer)) return;
             if (!sameBlock(clicked)) return;
             taskSuccess();
         }
-        // For button/lever => RIGHT_CLICK_BLOCK
         else if (action == Action.RIGHT_CLICK_BLOCK) {
             if (!event.getPlayer().equals(assignedPlayer)) return;
             if (!sameBlock(clicked)) return;
@@ -138,8 +121,6 @@ public class TaskManager implements Listener {
 
         if (stageManagerRef != null) {
             stageManagerRef.onTaskSuccess();
-        } else {
-            plugin.getLogger().warning("stageManagerRef is null on success?!");
         }
         cleanup();
     }
@@ -151,7 +132,6 @@ public class TaskManager implements Listener {
     }
 
     private void cleanup() {
-        // Turn off the lamp
         setLampLit(false);
 
         if (timeoutTask != null) {
@@ -163,9 +143,6 @@ public class TaskManager implements Listener {
         stageManagerRef = null;
     }
 
-    /**
-     * Light or unlight the lamp below currentBlock
-     */
     private void setLampLit(boolean lit) {
         if (currentBlock == null) return;
         LocationData below = new LocationData(currentBlock.worldName, currentBlock.x, currentBlock.y - 1, currentBlock.z);
@@ -178,7 +155,6 @@ public class TaskManager implements Listener {
     }
 
     private boolean sameBlock(Block block) {
-        // compare coordinates
         return block.getWorld().getName().equals(currentBlock.worldName)
                 && block.getX() == currentBlock.x
                 && block.getY() == currentBlock.y
@@ -186,7 +162,6 @@ public class TaskManager implements Listener {
     }
 
     private LocationData stringToLocationData(String s) {
-        // "world,x,y,z"
         String[] parts = s.split(",");
         if (parts.length != 4) return null;
         try {
@@ -200,9 +175,6 @@ public class TaskManager implements Listener {
         }
     }
 
-    /**
-     * A small container for block coords
-     */
     private static class LocationData {
         String worldName;
         int x, y, z;

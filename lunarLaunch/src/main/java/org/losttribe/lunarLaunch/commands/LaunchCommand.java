@@ -44,7 +44,6 @@ public class LaunchCommand implements CommandExecutor {
             if (stageManager.isRunning()) {
                 sender.sendMessage(ChatColor.RED + "The launch sequence is already running!");
             } else {
-                // DISABLE SETUP on start
                 plugin.setSetupMode(false);
 
                 sender.sendMessage(ChatColor.GREEN + "Starting the multi-stage launch sequence...");
@@ -53,7 +52,6 @@ public class LaunchCommand implements CommandExecutor {
             return true;
         }
 
-        // Unknown subcommand
         sender.sendMessage(ChatColor.YELLOW + "Usage: /launch <start|setup>");
         return true;
     }
