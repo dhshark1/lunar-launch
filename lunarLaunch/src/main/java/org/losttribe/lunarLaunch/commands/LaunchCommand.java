@@ -25,10 +25,15 @@ public class LaunchCommand implements CommandExecutor {
         }
 
         if (args[0].equalsIgnoreCase("setup")) {
+            if (stageManager.isRunning()) {
+                sender.sendMessage(ChatColor.RED + "Cannot enter setup mode after the launch has started!");
+                return true;
+            }
+
             boolean wasSetup = plugin.isSetupMode();
             plugin.setSetupMode(!wasSetup);
             if (!wasSetup) {
-                sender.sendMessage(ChatColor.GREEN + "Setup mode enabled. Right-click a lever/button/plate on a redstone lamp.");
+                sender.sendMessage(ChatColor.GREEN + "Setup mode enabled. Right-click a lever/button/plate on top of a redstone lamp.");
             } else {
                 sender.sendMessage(ChatColor.RED + "Setup mode disabled.");
             }
@@ -39,6 +44,9 @@ public class LaunchCommand implements CommandExecutor {
             if (stageManager.isRunning()) {
                 sender.sendMessage(ChatColor.RED + "The launch sequence is already running!");
             } else {
+                // DISABLE SETUP on start
+                plugin.setSetupMode(false);
+
                 sender.sendMessage(ChatColor.GREEN + "Starting the multi-stage launch sequence...");
                 stageManager.startLaunchFlow();
             }

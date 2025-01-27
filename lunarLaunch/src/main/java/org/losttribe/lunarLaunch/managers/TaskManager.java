@@ -12,8 +12,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import org.losttribe.lunarLaunch.models.LaunchStage;
-
 import java.util.List;
 import java.util.Random;
 
@@ -21,10 +19,10 @@ public class TaskManager implements Listener {
 
     private final LunarLaunch plugin;
 
-    private Location currentBlock;
-    private Player assignedPlayer;
+    private Location currentBlock;      // The block that must be interacted with
+    private Player assignedPlayer;      // The player who must do it
     private BukkitTask timeoutTask;
-    private StageManager stageManagerRef;
+    private StageManager stageManagerRef; // Link back to the stage manager
 
     public TaskManager(LunarLaunch plugin) {
         this.plugin = plugin;
@@ -32,7 +30,7 @@ public class TaskManager implements Listener {
     }
 
     /**
-     * Start the countdown before a task
+     * Start a pre-task countdown (e.g. 5s) before an actual task.
      */
     public void startPreTaskCountdown(int seconds, Runnable taskStarter) {
         new BukkitRunnable() {
@@ -51,7 +49,11 @@ public class TaskManager implements Listener {
     }
 
     /**
-     * Pick a random block from config, pick a random player, start the time-limited task
+     * Start a random task:
+     * - picks random block from config
+     * - picks random player
+     * - lights the lamp below
+     * - sets a time limit
      */
     public void startRandomTask(int timeLimit, StageManager stageManager) {
         this.stageManagerRef = stageManager;
@@ -63,7 +65,7 @@ public class TaskManager implements Listener {
             return;
         }
 
-        // pick random block from the list
+        // Pick random block location
         String chosen = blocks.get(new Random().nextInt(blocks.size()));
         currentBlock = stringToLocation(chosen);
         if (currentBlock == null) {
@@ -72,7 +74,7 @@ public class TaskManager implements Listener {
             return;
         }
 
-        // pick random player
+        // Pick random online player
         Player[] online = Bukkit.getOnlinePlayers().toArray(new Player[0]);
         if (online.length == 0) {
             Bukkit.broadcastMessage(ChatColor.RED + "No players online to complete the task!");
@@ -81,14 +83,14 @@ public class TaskManager implements Listener {
         }
         assignedPlayer = online[new Random().nextInt(online.length)];
 
-        // light the lamp beneath
+        // Light the lamp below
         setLampLit(true);
 
         Bukkit.broadcastMessage(ChatColor.GOLD + "[TASK] " + assignedPlayer.getName()
                 + ", interact with the block at " + currentBlockToString()
                 + " within " + timeLimit + " seconds!");
 
-        // set the timeout
+        // Timeout
         timeoutTask = Bukkit.getScheduler().runTaskLater(plugin, () -> {
             Bukkit.broadcastMessage(ChatColor.RED + "Task failed! Time ran out.");
             cleanup();
@@ -97,27 +99,26 @@ public class TaskManager implements Listener {
     }
 
     /**
-     * Listen for lever/button/plate interaction
+     * Listen for button/lever press or stepping on a pressure plate
      */
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (currentBlock == null || assignedPlayer == null) return;
 
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock == null) return;
-
+        Block clicked = event.getClickedBlock();
+        if (clicked == null) return;
         Action action = event.getAction();
 
         // pressure plate => PHYSICAL, lever/button => RIGHT_CLICK_BLOCK
         if (action == Action.PHYSICAL) {
             if (!event.getPlayer().equals(assignedPlayer)) return;
-            if (!clickedBlock.getLocation().equals(currentBlock)) return;
+            if (!clicked.getLocation().equals(currentBlock)) return;
             // success
             taskSuccess();
         }
         else if (action == Action.RIGHT_CLICK_BLOCK) {
             if (!event.getPlayer().equals(assignedPlayer)) return;
-            if (!clickedBlock.getLocation().equals(currentBlock)) return;
+            if (!clicked.getLocation().equals(currentBlock)) return;
             // success
             taskSuccess();
         }
@@ -130,11 +131,15 @@ public class TaskManager implements Listener {
     }
 
     private void cleanup() {
+        // Turn off lamp
         setLampLit(false);
+
+        // Cancel any timeout
         if (timeoutTask != null) {
             timeoutTask.cancel();
             timeoutTask = null;
         }
+        // Reset references
         currentBlock = null;
         assignedPlayer = null;
         stageManagerRef = null;

@@ -35,6 +35,7 @@ public class StageManager {
     }
 
     private void startNextTaskInStage() {
+        // If we've completed 3 tasks in this stage, move on
         if (tasksCompletedInStage >= 3) {
             goToNextStage();
             return;
@@ -42,7 +43,7 @@ public class StageManager {
 
         // 5-second pre-task countdown
         taskManager.startPreTaskCountdown(5, () -> {
-            // Then start the actual task
+            // Start an actual task
             int timeLimit;
             switch (currentStage) {
                 case LIFTOFF: timeLimit = 7; break;

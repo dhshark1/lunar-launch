@@ -22,31 +22,46 @@ public class SetupListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
+        // 1. Must be in setup mode
         if (!plugin.isSetupMode()) return;
+        // 2. Must NOT be running the launch
+        if (plugin.getStageManager().isRunning()) {
+            return;
+        }
+
         if (event.getClickedBlock() == null) return;
 
         Block clicked = event.getClickedBlock();
         Material type = clicked.getType();
 
         if (isInteractiveBlock(type)) {
-            // Check if the block below is a redstone lamp
+            // Check if below is a redstone lamp
             Block below = clicked.getRelative(BlockFace.DOWN);
             if (below.getType() == Material.REDSTONE_LAMP) {
+                // Retrieve current blocks
                 List<String> blockList = plugin.getConfig().getStringList("tasks.blocks");
                 if (blockList == null) {
                     blockList = new ArrayList<>();
                 }
 
+                // Convert location to string
                 String locStr = locationToString(clicked);
-                blockList.add(locStr);
 
-                plugin.getConfig().set("tasks.blocks", blockList);
-                plugin.saveConfig();
+                // Fix #1: check if it's already in config
+                if (blockList.contains(locStr)) {
+                    event.getPlayer().sendMessage(ChatColor.RED
+                            + "This block is already recorded in config.yml!");
+                } else {
+                    blockList.add(locStr);
+                    plugin.getConfig().set("tasks.blocks", blockList);
+                    plugin.saveConfig();
 
-                event.getPlayer().sendMessage(ChatColor.GREEN
-                        + "Recorded " + type + " at " + locStr + " (on a Redstone Lamp).");
+                    event.getPlayer().sendMessage(ChatColor.GREEN
+                            + "Recorded " + type + " at " + locStr + " (on a Redstone Lamp).");
+                }
             } else {
-                event.getPlayer().sendMessage(ChatColor.RED + "That block is NOT on top of a redstone lamp!");
+                event.getPlayer().sendMessage(ChatColor.RED
+                        + "That block is NOT on top of a redstone lamp!");
             }
             event.setCancelled(true);
         }
